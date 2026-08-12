@@ -7,7 +7,10 @@ export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loaded, setLoaded] = useState(false);
 
+  // Reads localStorage (unavailable during SSR), so this must run after
+  // mount rather than as a lazy useState initializer.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTasks(loadTasks());
     setLoaded(true);
   }, []);
