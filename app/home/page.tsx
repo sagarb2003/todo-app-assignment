@@ -4,15 +4,19 @@ import { useMemo, useState } from "react";
 import { Plus, Search as SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useTasks } from "@/hooks/useTasks";
-import { getWeekStart, toDateStr } from "@/lib/tasks";
+import { getWeekStart, toDateStr, Task } from "@/lib/tasks";
 import DayStrip from "@/components/DayStrip";
 import TaskItem from "@/components/TaskItem";
+import TaskForm from "@/components/TaskForm";
 
 export default function HomePage() {
-  const { tasks, loaded, toggleTask, deleteTask } = useTasks();
+  const { tasks, loaded, addTask, updateTask, toggleTask, deleteTask } =
+    useTasks();
   const today = toDateStr(new Date());
   const [selectedDate, setSelectedDate] = useState(today);
   const weekStart = getWeekStart(selectedDate);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const weekTasks = useMemo(
     () => tasks.filter((t) => getWeekStart(t.date) === weekStart),
@@ -98,7 +102,7 @@ export default function HomePage() {
                   key={task.id}
                   task={task}
                   onToggle={toggleTask}
-                  onEdit={() => {}}
+                  onEdit={setEditingTask}
                   onDelete={deleteTask}
                 />
               ))}
@@ -108,11 +112,33 @@ export default function HomePage() {
       </div>
 
       <button
+        onClick={() => setShowForm(true)}
         aria-label="Add task"
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700"
       >
         <Plus className="h-6 w-6" />
       </button>
+
+      {showForm && (
+        <TaskForm
+          onClose={() => setShowForm(false)}
+          onSave={(task) => {
+            addTask(task);
+            setShowForm(false);
+          }}
+        />
+      )}
+
+      {editingTask && (
+        <TaskForm
+          initialTask={editingTask}
+          onClose={() => setEditingTask(null)}
+          onSave={(updates) => {
+            updateTask(editingTask.id, updates);
+            setEditingTask(null);
+          }}
+        />
+      )}
     </div>
   );
 }
